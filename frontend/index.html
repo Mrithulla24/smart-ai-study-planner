@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SmartStudy | Sign in</title><link rel="stylesheet" href="assets/style.css"></head>
+<body class="login-body login-v2">
+<main class="login-layout">
+  <section class="login-showcase">
+    <div class="login-brand"><img src="assets/smartstudy-logo-option-9.svg" alt="SmartStudy logo"><div><strong>SmartStudy</strong><span>AI Study Planner</span></div></div>
+    <div class="showcase-copy"><p class="eyebrow">YOUR PERSONAL LEARNING COMPANION</p><h1>Small steps today.<br><span>Big achievements tomorrow.</span></h1><p>Turn your academic goals into a realistic study plan with personalized recommendations and progress tracking.</p>
+      <div class="feature-list"><div><b>✦</b><span><strong>Personalized AI recommendations</strong><small>Know what to focus on next.</small></span></div><div><b>◷</b><span><strong>Focused study sessions</strong><small>Build a consistent study routine.</small></span></div><div><b>↗</b><span><strong>Track your progress</strong><small>Celebrate every improvement.</small></span></div></div>
+    </div><p class="showcase-foot">LEARN SMARTER · GROW EVERY DAY</p>
+  </section>
+  <section class="login-panel"><div class="login-card login-card-v2"><div class="login-mobile-brand"><img src="assets/smartstudy-logo-option-9.svg" alt=""></div><p class="eyebrow">WELCOME BACK</p><h2>Sign in to continue</h2><p class="muted">Your next learning milestone starts here.</p>
+    <form id="loginForm"><label for="studentId">Student ID<input id="studentId" type="text" inputmode="numeric" placeholder="Enter your student ID" required></label><label for="email">Registered email<input id="email" type="email" placeholder="you@example.com" required></label><button class="primary login-submit" type="submit">Sign in to SmartStudy <span>→</span></button><p id="loginError" class="error" hidden></p></form>
+    <div class="login-divider"><span>NEW TO SMARTSTUDY?</span></div><a class="register-cta" href="register.html">Create a student account <span>→</span></a><p class="login-note">Sign in using the student ID and email registered in the project database.</p>
+  </div><p class="login-copyright">SMART AI STUDY PLANNER</p></section>
+</main>
+<script src="assets/app.js"></script><script>document.addEventListener('DOMContentLoaded',()=>{if(sessionStorage.getItem('student')){location.href='dashboard.html';return;}document.getElementById('loginForm').addEventListener('submit',async e=>{e.preventDefault();const btn=e.target.querySelector('button'),err=document.getElementById('loginError');err.hidden=true;btn.disabled=true;btn.innerHTML='Signing in…';try{const students=await API.get('/students');const id=Number(document.getElementById('studentId').value.trim());const email=document.getElementById('email').value.trim().toLowerCase();const s=students.find(x=>Number(x.student_id)===id&&String(x.email).trim().toLowerCase()===email);if(!s)throw new Error('Student ID and email do not match our records.');sessionStorage.setItem('student',JSON.stringify(s));location.href='dashboard.html';}catch(ex){err.textContent=ex.message||'Unable to sign in. Please check that the backend is running.';err.hidden=false;}finally{btn.disabled=false;btn.innerHTML='Sign in to SmartStudy <span>→</span>';}});});</script>
+</body></html>

@@ -1,0 +1,57 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Performance | SmartStudy</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<script src="assets/app.js"></script>
+<script>
+const page=shell('performance','Performance','');
+let currentStudent=student();
+
+function render(records, subjects){
+  page.innerHTML=`
+  <section class="card">
+    <div class="section-head"><div><h2>Add Performance</h2></div></div>
+    <form id="performanceForm" class="form-grid">
+      <label>Subject<select id="subject_id" required><option value="">Select subject</option>${subjects.map(x=>`<option value="${x.subject_id}">${esc(x.subject_name)} — ${esc(x.topic)}</option>`).join('')}</select></label>
+      <label>Score (%)<input id="score" type="number" min="0" max="100" step="0.01" required placeholder="e.g. 72"></label>
+      <label>Attendance (%)<input id="attendance" type="number" min="0" max="100" step="0.01" required placeholder="e.g. 85"></label>
+      <label>Study Hours / Week<input id="study_hours" type="number" min="0" step="0.1" required placeholder="e.g. 3"></label>
+      <label>Previous Score (%)<input id="previous_score" type="number" min="0" max="100" step="0.01" required placeholder="e.g. 70"></label>
+      <div class="form-actions"><button id="savePerformance" class="btn primary" type="submit">Save Performance</button><span id="formMessage" class="muted"></span></div>
+    </form>
+  </section>
+  <section class="card">
+    <div class="section-head"><div><h2>Performance Records</h2></div></div>
+    ${records.length ? `<div class="table-wrap"><table class="table"><thead><tr><th>Subject</th><th>Score</th><th>Attendance</th><th>Study Hours</th><th>Previous</th><th>Trend</th></tr></thead><tbody>${records.map(x=>{const ch=Number(x.score)-Number(x.previous_score);return `<tr><td><strong>${esc(x.subject_name)}</strong><div class="small muted">${esc(x.topic)}</div></td><td>${Number(x.score).toFixed(1)}%</td><td>${Number(x.attendance).toFixed(1)}%</td><td>${Number(x.study_hours).toFixed(1)}</td><td>${Number(x.previous_score).toFixed(1)}%</td><td>${ch>=0?'↑':'↓'} ${Math.abs(ch).toFixed(1)}%</td></tr>`}).join('')}</tbody></table></div>` : `<div class="empty">No performance records yet. Add the student's first performance record above.</div>`}
+  </section>`;
+  document.getElementById('performanceForm').addEventListener('submit',savePerformance);
+}
+
+async function load(){
+  try {
+    const [records, subjects] = await Promise.all([API.get('/performance/'+currentStudent.student_id), API.get('/subjects')]);
+    render(records, subjects);
+  } catch(e) { page.innerHTML=`<div class="card error">${esc(e.message)}</div>`; }
+}
+
+async function savePerformance(event){
+  event.preventDefault();
+  const btn=document.getElementById('savePerformance'); const msg=document.getElementById('formMessage');
+  const payload={
+    student_id:Number(currentStudent.student_id),
+    subject_id:Number(document.getElementById('subject_id').value),
+    score:Number(document.getElementById('score').value),
+    attendance:Number(document.getElementById('attendance').value),
+    study_hours:Number(document.getElementById('study_hours').value),
+    previous_score:Number(document.getElementById('previous_score').value)
+  };
+  if(!payload.subject_id){msg.textContent='Please select a subject.';return;}
+  setBusy(btn,true,'Saving…'); msg.textContent='';
+  try {
+    await API.post('/performance',payload);
+    msg.textContent='Performance saved successfully!';
+    await load();
+  } catch(e) { msg.textContent=e.message; }
+  finally { setBusy(btn,false); }
+}
+load();
+</script>
+</body></html>
